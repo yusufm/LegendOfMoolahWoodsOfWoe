@@ -60,13 +60,6 @@ let logCount = 0;
 let keyFollowingCow = false;
 let cageReplaced = false;
 
-let timer = 180; // 3 minutes in seconds
-setInterval(() => {
-    if (timer > 0) {
-        timer--;
-    }
-}, 1000);
-
 canvas.addEventListener('click', function(event) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -212,16 +205,6 @@ function drawScene() {
         ctx.font = '30px Arial'; // Increase font size
         ctx.fillText(logCount, 100, 55); // Position number in the box
     }
-
-    // Draw timer in the top right corner
-    const minutes = Math.floor(timer / 60);
-    const seconds = timer % 60;
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 40px Arial'; // Increase size by 2x
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 3; // Make outline 1.5x thicker
-    ctx.strokeText(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`, canvas.width - 80, 30);
-    ctx.fillText(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`, canvas.width - 80, 30);
 
     // Draw cage or winner image in the bottom-right corner
     const cageWidth = 100; // 2x bigger
