@@ -42,12 +42,66 @@ const treeCount = 300; // Further increased tree count for dense forest
 const centerX = canvas.width / 2;
 const centerY = canvas.height / 2;
 const clearRadius = 100 * 1.5; // Further increased clear area radius
+
+// Ensure all images are loaded before drawing
+let imagesLoaded = 0;
+const totalImages = 13; // Updated to include arrow images
+
+function imageLoaded() {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+        drawScene();
+    }
+}
+
+cowImage.onload = imageLoaded;
+cageImage.onload = imageLoaded;
+keyImage.onload = imageLoaded;
+winnerImage.onload = imageLoaded;
+winningBannerImage.onload = imageLoaded;
+treeImage.onload = imageLoaded;
+treeImage2.onload = imageLoaded;
+grassImage.onload = imageLoaded;
+buttonImage.onload = imageLoaded;
+logImage.onload = imageLoaded;
+counterImage.onload = imageLoaded;
+
+// Load arrow images
+const arrowUpImage = new Image();
+arrowUpImage.src = 'arrow_up.png';
+const arrowDownImage = new Image();
+arrowDownImage.src = 'arrow_down.png';
+const arrowLeftImage = new Image();
+arrowLeftImage.src = 'arrow_left.png';
+const arrowRightImage = new Image();
+arrowRightImage.src = 'arrow_right.png';
+
+arrowUpImage.onload = imageLoaded;
+arrowDownImage.onload = imageLoaded;
+arrowLeftImage.onload = imageLoaded;
+arrowRightImage.onload = imageLoaded;
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    drawScene();
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+// Initial canvas size setup
+resizeCanvas();
+
+// Update cow position to be relative to canvas size
+// let cowPosition = { x: canvas.width / 2, y: canvas.height / 2 };
+
+// Update tree positions to be relative to canvas size
 for (let i = 0; i < treeCount; i++) {
     let x, y;
     do {
         x = Math.random() * canvas.width;
         y = Math.random() * canvas.height;
-    } while (Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2) < clearRadius || (x > canvas.width - 100 && y > canvas.height - 100)); // Ensure space in bottom right corner
+    } while (Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2) < clearRadius || (x > canvas.width - 100 && y > canvas.height - 100));
     const treeType = Math.random() < 0.5 ? treeImage : treeImage2;
     trees.push({ x, y, treeType });
 }
@@ -88,6 +142,28 @@ canvas.addEventListener('click', function(event) {
         }))
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 6);
+
+    const arrowSize = 50;
+    const arrowPadding = 10;
+
+    // Check if click is on arrow keys
+    if (mouseX > arrowPadding && mouseX < arrowPadding + arrowSize &&
+        mouseY > canvas.height - 2 * arrowSize - arrowPadding && mouseY < canvas.height - arrowSize - arrowPadding) {
+        // Left arrow
+        moveCow('ArrowLeft');
+    } else if (mouseX > 2 * arrowPadding + arrowSize && mouseX < 2 * arrowPadding + 2 * arrowSize &&
+               mouseY > canvas.height - 2 * arrowSize - arrowPadding && mouseY < canvas.height - arrowSize - arrowPadding) {
+        // Right arrow
+        moveCow('ArrowRight');
+    } else if (mouseX > arrowPadding + arrowSize && mouseX < arrowPadding + 2 * arrowSize &&
+               mouseY > canvas.height - 3 * arrowSize - arrowPadding && mouseY < canvas.height - 2 * arrowSize - arrowPadding) {
+        // Up arrow
+        moveCow('ArrowUp');
+    } else if (mouseX > arrowPadding + arrowSize && mouseX < arrowPadding + 2 * arrowSize &&
+               mouseY > canvas.height - arrowSize - arrowPadding && mouseY < canvas.height - arrowPadding) {
+        // Down arrow
+        moveCow('ArrowDown');
+    }
 });
 
 cowImage.onerror = function() {
@@ -153,7 +229,20 @@ window.addEventListener('keydown', function(event) {
     }
 });
 
+// Draw arrows on canvas
+function drawArrows() {
+    const arrowSize = 50;
+    const arrowPadding = 10;
+    ctx.drawImage(arrowUpImage, arrowPadding + arrowSize, canvas.height - 3 * arrowSize - arrowPadding, arrowSize, arrowSize);
+    ctx.drawImage(arrowDownImage, arrowPadding + arrowSize, canvas.height - arrowSize - arrowPadding, arrowSize, arrowSize);
+    ctx.drawImage(arrowLeftImage, arrowPadding, canvas.height - 2 * arrowSize - arrowPadding, arrowSize, arrowSize);
+    ctx.drawImage(arrowRightImage, 2 * arrowPadding + arrowSize, canvas.height - 2 * arrowSize - arrowPadding, arrowSize, arrowSize);
+}
+
+// Modify drawScene to include drawArrows
 function drawScene() {
+    if (imagesLoaded < totalImages) return; // Wait for all images to load
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Tile grass image with scaling
@@ -225,5 +314,33 @@ function drawScene() {
     const cowHeight = 50 * 1.25;
     ctx.drawImage(cowImage, cowPosition.x - cowWidth / 2, cowPosition.y - cowHeight / 2, cowWidth, cowHeight);
 
+    // Draw arrows
+    drawArrows();
+
     requestAnimationFrame(drawScene);
+}
+
+// Function to move cow based on direction
+function moveCow(direction) {
+    const speed = 5;
+    let newX = cowPosition.x;
+    let newY = cowPosition.y;
+    switch(direction) {
+        case 'ArrowUp':
+            newY -= speed;
+            break;
+        case 'ArrowDown':
+            newY += speed;
+            break;
+        case 'ArrowLeft':
+            newX -= speed;
+            break;
+        case 'ArrowRight':
+            newX += speed;
+            break;
+    }
+    if (!isColliding(newX, newY)) {
+        cowPosition.x = newX;
+        cowPosition.y = newY;
+    }
 } 
